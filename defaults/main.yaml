@@ -1,0 +1,62 @@
+---
+
+# Package to be installed (explicit version can be specified here)
+logstash_pkg: logstash
+
+# Additional packages to be installed (e.g. Java)
+logstash_additional_pkgs:
+  - java
+
+# Location of the config file
+logstash_config_file: /etc/logstash/logstash.yml
+
+# YUM repo URL
+logstash_yum_repo_url: https://packages.elastic.co/logstash/2.4/centos
+
+# YUM repo GPG key
+logstash_yum_repo_key: https://packages.elastic.co/GPG-KEY-elasticsearch
+
+# Extra EPEL YUM repo params
+logstash_yum_repo_params: {}
+
+# Name of the service
+logstash_service: logstash
+
+
+# Path to the Logstash config directory
+logstash_config_path: /etc/logstash/conf.d
+
+# Default configuration
+logstash_config__default: {}
+
+# Custom configuration
+logstash_config__custom: {}
+
+# Final configuration
+logstash_config: "{{
+  logstash_config__default.update(
+  logstash_config__custom) }}{{
+  logstash_config__default }}"
+
+
+# Path to the sysconfig file
+logstash_sysconfig_file: /etc/sysconfig/logstash
+
+logstash_sysconfig:
+  kill_on_stop_timeout: 0
+# Possible options:
+#logstash_sysconfig:
+#  javacmd: /usr/bin/java
+#  ls_home: /var/lib/logstash
+#  ls_opts: ""
+#  ls_heap_size: 1g
+#  ls_java_opts: "-Djava.io.tmpdir: $HOME"
+#  ls_pidfile: /var/run/logstash.pid
+#  ls_user: logstash
+#  ls_log_file: /var/log/logstash/logstash.log
+#  ls_use_gc_logging: "true"
+#  ls_gc_log_file: /var/log/logstash/gc.log
+#  ls_conf_dir: /etc/logstash/conf.d
+#  ls_open_files: 16384
+#  ls_nice: 19
+#  kill_on_stop_timeout: 0

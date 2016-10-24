@@ -1,0 +1,9 @@
+---
+
+- name: Restart Logstash service
+  service:
+    name: "{{ logstash_service }}"
+    state: restarted
+  when: >
+    logstash_service_started is not defined or
+    not logstash_service_started.changed

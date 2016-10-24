@@ -1,0 +1,67 @@
+---
+
+- name: Test distribution
+  assert:
+    that: ansible_os_family == "RedHat"
+
+- name: Create Logstash YUM repo file
+  yum_repository:
+    name: logstash
+    description: Logstash YUM repo
+    file: elastic
+    baseurl: "{{ logstash_yum_repo_url }}"
+    gpgkey: "{{ logstash_yum_repo_key }}"
+    params: "{{ logstash_yum_repo_params }}"
+  tags:
+    - logstash_pkg
+
+- name: Install Logstash package
+  package:
+    name: "{{ logstash_pkg }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_pkg
+
+- name: Install additional Logstash packages
+  package:
+    name: "{{ item }}"
+  with_items: "{{ logstash_additional_pkgs }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_pkg
+
+- name: Configure Logstash
+  template:
+    src: logstash.conf.j2
+    dest: "{{ logstash_config_path }}/{{ item.key }}.conf"
+  with_dict: "{{ logstash_config }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_config
+
+- name: Configure Logstash sysconfig
+  template:
+    src: logstash.sysconfig.j2
+    dest: "{{ logstash_sysconfig_file }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_config
+
+- name: Enable Logstash service
+  service:
+    name: "{{ logstash_service }}"
+    enabled: yes
+  tags:
+    - logstash_service
+
+- name: Start Logstash service
+  service:
+    name: "{{ logstash_service }}"
+    state: started
+  register: logstash_service_started
+  tags:
+    - logstash_service

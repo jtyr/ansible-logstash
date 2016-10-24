@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+
+{{ logstash_sysconfig | encode_ini(ucase_prop=true) }}
