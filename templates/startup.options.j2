@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+
+{{ logstash_startup_options | encode_ini(ucase_prop=true, quote='"', section_is_comment=true) }}

@@ -6,18 +6,19 @@
 
 - name: Create Logstash YUM repo file
   yum_repository:
-    name: logstash
-    description: Logstash YUM repo
-    file: elastic
+    name: elastic
+    description: Elastic YUM repo
     baseurl: "{{ logstash_yum_repo_url }}"
     gpgkey: "{{ logstash_yum_repo_key }}"
     params: "{{ logstash_yum_repo_params }}"
   tags:
     - logstash_pkg
+    - logstash_yumrepo
 
 - name: Install Logstash package
   package:
     name: "{{ logstash_pkg }}"
+  register: logstash_pkg_status
   notify:
     - Restart Logstash service
   tags:
@@ -32,15 +33,57 @@
   tags:
     - logstash_pkg
 
-- name: Configure Logstash
+- name: Configure Logstash startup options
   template:
-    src: logstash.conf.j2
-    dest: "{{ logstash_config_path }}/{{ item.key }}.conf"
-  with_dict: "{{ logstash_config }}"
+    src: startup.options.j2
+    dest: "{{ logstash_startup_options_file }}"
+  register: logstash_startup_options_state
   notify:
     - Restart Logstash service
   tags:
     - logstash_config
+    - logstash_startup_options
+
+- name: Re-run system-install
+  shell: >
+    {{ logstash_startup_options_ls_home }}/bin/system-install {{ logstash_startup_options_file }}
+  when: >
+    logstash_startup_options_state | changed
+  register: logstash_system_install_status
+  tags:
+    - logstash_config
+    - logstash_startup_options
+
+- name: Configure Logstash
+  template:
+    src: logstash.yml.j2
+    dest: "{{ logstash_config_file }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_config
+    - logstash_config_main
+
+- name: Configure Logstash pipeline
+  template:
+    src: logstash.conf.j2
+    dest: "{{ logstash_pipeline_path }}/{{ item.key }}.conf"
+  with_dict: "{{ logstash_pipeline }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_config
+    - logstash_config_parser
+
+- name: Configure Logstash JVM options
+  template:
+    src: jvm.options.j2
+    dest: "{{ logstash_jvm_options_file }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_config
+    - logstash_jvm_options
 
 - name: Configure Logstash sysconfig
   template:
@@ -50,11 +93,13 @@
     - Restart Logstash service
   tags:
     - logstash_config
+    - logstash_jvm_sysconfig
 
 - name: Enable Logstash service
   service:
     name: "{{ logstash_service }}"
     enabled: yes
+    daemon_reload: "{{ 'yes' if (logstash_system_install_status | changed) else 'no' }}"
   tags:
     - logstash_service
 
