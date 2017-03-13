@@ -22,8 +22,6 @@ Examples
   hosts: all
   vars:
     # Change the JVM heap size
-    logstash_sysconfig:
-      es_heap_size: 512m
     logstash_jvm_options_x_ms: 256m
     logstash_jvm_options_x_mx: 512m
     # Bind to all network interfaces
@@ -168,26 +166,10 @@ logstash_pipeline: "{{
 
 
 # Path to the sysconfig file
-logstash_sysconfig_file: /etc/sysconfig/logstash
+logstash_sysconfig_file: /etc/default/logstash
 
-logstash_sysconfig:
-  kill_on_stop_timeout: 0
-# Possible options:
-#logstash_sysconfig:
-#  javacmd: /usr/bin/java
-#  ls_home: /var/lib/logstash
-#  ls_opts: ""
-#  ls_heap_size: 1g
-#  ls_java_opts: "-Djava.io.tmpdir: $HOME"
-#  ls_pidfile: /var/run/logstash.pid
-#  ls_user: logstash
-#  ls_log_file: /var/log/logstash/logstash.log
-#  ls_use_gc_logging: "true"
-#  ls_gc_log_file: /var/log/logstash/gc.log
-#  ls_conf_dir: /etc/logstash/conf.d
-#  ls_open_files: 16384
-#  ls_nice: 19
-#  kill_on_stop_timeout: 0
+# Sysconfig options
+logstash_sysconfig: {}
 
 
 # Location of the jvm.options file

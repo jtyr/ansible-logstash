@@ -48,6 +48,7 @@
   shell: >
     {{ logstash_startup_options_ls_home }}/bin/system-install {{ logstash_startup_options_file }}
   when: >
+    logstash_startup_options_state is defined and
     logstash_startup_options_state | changed
   register: logstash_system_install_status
   tags:
@@ -95,11 +96,21 @@
     - logstash_config
     - logstash_jvm_sysconfig
 
+- name: Reload systemd daemon
+  systemd:
+    name: "{{ logstash_service }}"
+    daemon_reload: yes
+  when: >
+    ansible_service_mgr == 'systemd' and
+    logstash_system_install_status is defined and
+    logstash_system_install_status | changed
+  tags:
+    - logstash_service
+
 - name: Enable Logstash service
   service:
     name: "{{ logstash_service }}"
     enabled: yes
-    daemon_reload: "{{ 'yes' if (logstash_system_install_status | changed) else 'no' }}"
   tags:
     - logstash_service
 
