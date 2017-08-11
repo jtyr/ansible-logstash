@@ -10,7 +10,11 @@ galaxy_info:
       versions:
         - 6
         - 7
-  categories:
-    - system
+    - name: Ubuntu
+      versions:
+        - xenial
+  galaxy_tags:
+    - monitoring
+    - logging
 dependencies:
   - config_encoder_filters

@@ -2,7 +2,11 @@
 
 - name: Test distribution
   assert:
-    that: ansible_os_family == "RedHat"
+    that: >
+      ansible_os_family == 'RedHat' or
+      ansible_os_family == 'Debian'
+  tags:
+    - logstash_assert
 
 - name: Create Logstash YUM repo file
   yum_repository:
@@ -11,23 +15,43 @@
     baseurl: "{{ logstash_yum_repo_url }}"
     gpgkey: "{{ logstash_yum_repo_key }}"
     params: "{{ logstash_yum_repo_params }}"
+  when: >
+    ansible_os_family == 'RedHat'
   tags:
     - logstash_pkg
     - logstash_yumrepo
 
-- name: Install Logstash package
-  package:
-    name: "{{ logstash_pkg }}"
-  register: logstash_pkg_status
-  notify:
-    - Restart Logstash service
+- name: Install Logstash GPG key
+  apt_key:
+    url: "{{ logstash_apt_repo_key }}"
+  when: >
+    ansible_os_family == 'Debian'
   tags:
     - logstash_pkg
+    - logstash_aptrepo
+
+- name: Create Logstash APT repo file
+  apt_repository:
+    repo: "{{ logstash_apt_repo_string }}"
+  when: >
+    ansible_os_family == 'Debian'
+  tags:
+    - logstash_pkg
+    - logstash_aptrepo
 
 - name: Install additional Logstash packages
   package:
     name: "{{ item }}"
   with_items: "{{ logstash_additional_pkgs }}"
+  notify:
+    - Restart Logstash service
+  tags:
+    - logstash_pkg
+
+- name: Install Logstash package
+  package:
+    name: "{{ logstash_pkg }}"
+  register: logstash_pkg_status
   notify:
     - Restart Logstash service
   tags:
@@ -92,6 +116,8 @@
     dest: "{{ logstash_sysconfig_file }}"
   notify:
     - Restart Logstash service
+  when: >
+    ansible_os_family == 'RedHat'
   tags:
     - logstash_config
     - logstash_jvm_sysconfig

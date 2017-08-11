@@ -37,7 +37,7 @@ Examples
     # Create events
     logstash_pipeline:
       # This is the file name which will be created in /etc/logstash/conf.d
-      test1:
+      apache:
         # Here starts the Logstash configuration for that file
         - :input:
             - :file:
@@ -69,6 +69,20 @@ Examples
                   - localhost:9200
             - :stdout:
                 codec: rubydebug
+      # Filebeat input configuration
+      beats:
+        - :input:
+            - :beats:
+                port: 5044
+        - :output:
+            - :elasticsearch:
+                hosts:
+                  - localhost:9200
+                manage_template: "false"
+                index: "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+                document_type: "%{[@metadata][type]}"
+            - :stdout:
+                codec: rubydebug
   roles:
     - logstash
 ```
@@ -83,7 +97,11 @@ logstash_pkg: logstash
 
 # Additional packages to be installed (e.g. Java)
 logstash_additional_pkgs:
-  - java
+  - "{{
+        'java'
+          if ansible_os_family == 'RedHat'
+          else
+        'openjdk-8-jdk' }}"
 
 # YUM repo URL
 logstash_yum_repo_url: "{{ elastic_yum_repo_url | default('https://artifacts.elastic.co/packages/5.x/yum') }}"
@@ -93,6 +111,12 @@ logstash_yum_repo_key: "{{ elastic_yum_repo_key | default('https://artifacts.ela
 
 # Extra EPEL YUM repo params
 logstash_yum_repo_params: "{{ elastic_yum_repo_params | default({}) }}"
+
+# GPG key for the APT repo
+logstash_apt_repo_key: "{{ elastic_apt_repo_key | default('https://artifacts.elastic.co/GPG-KEY-elasticsearch') }}"
+
+# APT repo string
+logstash_apt_repo_string: "{{ elastic_apt_repo_string | default('deb https://artifacts.elastic.co/packages/5.x/apt stable main') }}"
 
 # Name of the service
 logstash_service: logstash
