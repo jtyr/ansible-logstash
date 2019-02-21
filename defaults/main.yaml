@@ -29,6 +29,8 @@ logstash_apt_repo_string: "{{ elastic_apt_repo_string | default('deb https://art
 # Name of the service
 logstash_service: logstash
 
+# installs and configures elastic repo if true
+logstash_configure_package_repo: true
 
 # Path to the main config file
 logstash_config_file: /etc/logstash/logstash.yml

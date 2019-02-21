@@ -8,36 +8,39 @@
   tags:
     - logstash_assert
 
-- name: Create Logstash YUM repo file
-  yum_repository:
-    name: elastic
-    description: Elastic YUM repo
-    baseurl: "{{ logstash_yum_repo_url }}"
-    gpgkey: "{{ logstash_yum_repo_key }}"
-    params: "{{ logstash_yum_repo_params }}"
-  when: >
-    ansible_os_family == 'RedHat'
-  tags:
-    - logstash_pkg
-    - logstash_yumrepo
+- name: configure package repository
+  block:
+    - name: Create Logstash YUM repo file
+      yum_repository:
+        name: elastic
+        description: Elastic YUM repo
+        baseurl: "{{ logstash_yum_repo_url }}"
+        gpgkey: "{{ logstash_yum_repo_key }}"
+        params: "{{ logstash_yum_repo_params }}"
+      when: >
+        ansible_os_family == 'RedHat'
+      tags:
+        - logstash_pkg
+        - logstash_yumrepo
 
-- name: Install Logstash GPG key
-  apt_key:
-    url: "{{ logstash_apt_repo_key }}"
-  when: >
-    ansible_os_family == 'Debian'
-  tags:
-    - logstash_pkg
-    - logstash_aptrepo
+    - name: Install Logstash GPG key
+      apt_key:
+        url: "{{ logstash_apt_repo_key }}"
+      when: >
+        ansible_os_family == 'Debian'
+      tags:
+        - logstash_pkg
+        - logstash_aptrepo
 
-- name: Create Logstash APT repo file
-  apt_repository:
-    repo: "{{ logstash_apt_repo_string }}"
-  when: >
-    ansible_os_family == 'Debian'
-  tags:
-    - logstash_pkg
-    - logstash_aptrepo
+    - name: Create Logstash APT repo file
+      apt_repository:
+        repo: "{{ logstash_apt_repo_string }}"
+      when: >
+        ansible_os_family == 'Debian'
+      tags:
+        - logstash_pkg
+        - logstash_aptrepo
+  when: logstash_configure_package_repo
 
 - name: Install additional Logstash packages
   package:
